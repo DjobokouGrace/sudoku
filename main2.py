@@ -9,7 +9,12 @@ pygame.init()
 
 #grid = np.zeros((9,9), dtype=int) # Grid de base
 
-grid = utils.CUSTOM_GRID_TWO.copy()
+# grid = utils.CUSTOM_GRID_TWO.copy()
+
+grid = np.zeros((9, 9, 4), dtype=object)
+grid[:, :, 1] = {"r": 240, "g": 230, "b": 140}
+grid[:, :, 2] = None
+grid[:, :, 3] = 55
 
 # Position initiale du curseur
 cursorX, cursorY = 0, 0
@@ -99,12 +104,19 @@ def draw_grid():
         pygame.draw.line(window, utils.GRAY if y % 3 else utils.BLACK, (0, y), (utils.WINDOW_WIDTH, y), 2 if y % 3 == 0 else 1)
 
 
-def draw_numbers(color=utils.YELLOW, font_url=None, font_size=55):
-    for y, row in enumerate(grid):
+def draw_numbers():
+    def get_cell_color(line, column):
+        cell_color = grid[line, column, 1]
+        print("cell_color", grid, grid[line, column], cell_color)
+        cell_color_tuple = (cell_color["r"], cell_color["g"], cell_color["b"])
+        return cell_color_tuple
+
+
+    for y, row in enumerate(grid[:, :, 0]):
         for x, num in enumerate(row):
             if num != 0:
-                pygame.draw.rect(window, color, (x * utils.CELL_SIZE, y * utils.CELL_SIZE, utils.CELL_SIZE, utils.CELL_SIZE))
-                font = pygame.font.Font(font_url, font_size)
+                pygame.draw.rect(window, get_cell_color(y, x), (x * utils.CELL_SIZE, y * utils.CELL_SIZE, utils.CELL_SIZE, utils.CELL_SIZE))
+                font = pygame.font.Font(grid[:, :, 2][y][x], grid[:, :, 3][y][x])
                 text = font.render(str(num), 1, (10, 10, 10))
                 text_rect = text.get_rect(center=(x * utils.CELL_SIZE + utils.CELL_SIZE // 2, y * utils.CELL_SIZE + utils.CELL_SIZE // 2))
                 window.blit(text, text_rect)
@@ -141,9 +153,9 @@ def draw_selected_cell():
         pygame.draw.rect(window, utils.RED, (x * utils.CELL_SIZE, y * utils.CELL_SIZE, utils.CELL_SIZE, utils.CELL_SIZE), 3)
 
 
-def update_display(params=utils.CELL_DEFAULT):
+def update_display():
     window.fill(utils.WHITE)
-    draw_numbers(*params)
+    draw_numbers()
     draw_grid()
     draw_selected_cell()
     pygame.display.update()
@@ -156,19 +168,20 @@ def solve(grid, row=0, col=0):
         row += 1
         col = 0
 
-    if grid[row][col] > 0:
+    if grid[:, :, 0][row][col] > 0:
         return solve(grid, row, col + 1)
 
     for num in range(1, 10):
-        if valid(grid, row, col, num):
-            grid[row][col] = num
-            update_display(utils.CELL_SYSTEM_SOLVED)
+        if valid(grid[:, :, 0], row, col, num):
+            grid[:, :, 0][row][col] = num
+            grid[:, :, 1][row][col] = {"r": 220, "g": 20, "b": 60}
+            #update_display()
 
             if solve(grid, row, col + 1):
                 return True
 
-        grid[row][col] = 0
-        update_display(utils.CELL_SYSTEM_SOLVED)
+        grid[:, :, 0][row][col] = 0
+        #update_display()
 
     # return False
 
@@ -194,13 +207,14 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.unicode.isdigit() and 0 < int(event.unicode) <= 9:
-                    grid[cursorY][cursorX] = int(event.unicode)
+                    grid[:, :, 0][cursorY][cursorX] = int(event.unicode)
+                    grid[:, :, 2][cursorY][cursorX] = "Kind Handwriting.ttf"
 
                 elif event.key == pygame.K_RETURN:
                     solve(grid)
 
                 elif event.key == pygame.K_BACKSPACE:
-                    grid[cursorY][cursorX] = 0
+                    grid[:, :, 0][cursorY][cursorX] = 0
 
         update_display()
 
