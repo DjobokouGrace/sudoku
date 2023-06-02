@@ -4,7 +4,7 @@
 ``python -m venv venv``
 
 ## Activate the virtual environment
-``venv\Scripts\activate.bat``
+``venv\Scripts\activate``
 
 ## Install the required dependencies
 ``pip install -r requirements.txt``
