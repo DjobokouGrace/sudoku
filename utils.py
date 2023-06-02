@@ -1,6 +1,7 @@
 # Dimensions
 WINDOW_HEIGHT = 450
 WINDOW_WIDTH = 450
+
 CELL_SIZE = WINDOW_HEIGHT // 9
 
 # Custom grids
